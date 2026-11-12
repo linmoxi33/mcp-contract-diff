@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "old": {
+    "label": "home-assistant-7.2.tools.json",
+    "tool_count": 3
+  },
+  "new": {
+    "label": "home-assistant-7.3.tools.json",
+    "tool_count": 3
+  },
+  "verdict": "breaking",
+  "counts": {
+    "breaking": 3,
+    "compatible": 4,
+    "info": 0
+  },
+  "changes": [
+    {
+      "kind": "REQUIRED_PARAM_ADDED",
+      "severity": "breaking",
+      "tool": "ha_call_service",
+      "path": "tools[ha_call_service].inputSchema.required",
+      "detail": "new required argument(s): target"
+    },
+    {
+      "kind": "TOOL_REMOVED",
+      "severity": "breaking",
+      "tool": "ha_config_set_yaml",
+      "path": "tools[ha_config_set_yaml]",
+      "detail": "tool no longer present in tools/list"
+    },
+    {
+      "kind": "ENUM_NARROWED",
+      "severity": "breaking",
+      "tool": "ha_get_state",
+      "path": "tools[ha_get_state].inputSchema.properties.detail.enum",
+      "detail": "removed enum value(s): \"full\""
+    },
+    {
+      "kind": "PARAM_ADDED",
+      "severity": "compatible",
+      "tool": "ha_call_service",
+      "path": "tools[ha_call_service].inputSchema.properties.return_response",
+      "detail": "argument 'return_response' added"
+    },
+    {
+      "kind": "TYPE_WIDENED",
+      "severity": "compatible",
+      "tool": "ha_call_service",
+      "path": "tools[ha_call_service].inputSchema.properties.target.type",
+      "detail": "type ['object'] -> ['object', 'string']"
+    },
+    {
+      "kind": "TOOL_ADDED",
+      "severity": "compatible",
+      "tool": "ha_config_get_yaml",
+      "path": "tools[ha_config_get_yaml]",
+      "detail": "new tool present in tools/list"
+    },
+    {
+      "kind": "TYPE_WIDENED",
+      "severity": "compatible",
+      "tool": "ha_get_state",
+      "path": "tools[ha_get_state].inputSchema.properties.entity_id.type",
+      "detail": "type ['string'] -> ['array', 'string']"
+    }
+  ]
+}

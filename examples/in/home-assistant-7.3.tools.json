@@ -1,0 +1,44 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "ha_config_get_yaml",
+        "description": "Read a YAML configuration fragment back from configuration.yaml.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["path"],
+          "properties": {"path": {"type": "string"}}
+        }
+      },
+      {
+        "name": "ha_call_service",
+        "description": "Call a Home Assistant service with data.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["domain", "service", "target"],
+          "properties": {
+            "domain": {"type": "string"},
+            "service": {"type": "string"},
+            "target": {"type": ["object", "string"]},
+            "data": {"type": "object"},
+            "return_response": {"type": "boolean", "default": false}
+          }
+        }
+      },
+      {
+        "name": "ha_get_state",
+        "description": "Return the state object of one or more entities.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["entity_id"],
+          "properties": {
+            "entity_id": {"type": ["string", "array"]},
+            "detail": {"type": "string", "enum": ["minimal"]}
+          }
+        }
+      }
+    ]
+  }
+}

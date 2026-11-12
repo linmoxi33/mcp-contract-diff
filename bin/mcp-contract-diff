@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""CLI wrapper for mcp-contract-diff."""
+
+import argparse
+import json
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from mcpdiff import InputError, SEVERITY_ORDER, build_report  # noqa: E402
+
+EXIT_OK = 0
+EXIT_FINDINGS = 1
+EXIT_USAGE = 2
+
+
+def _read(path):
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except OSError as exc:
+        raise InputError("cannot read %s: %s" % (path, exc.strerror or exc))
+    except json.JSONDecodeError as exc:
+        raise InputError("%s is not valid JSON: %s" % (path, exc))
+
+
+def _human(report):
+    lines = []
+    lines.append("mcp-contract-diff: %s -> %s" % (report["old"]["label"], report["new"]["label"]))
+    lines.append("tools: %d -> %d" % (report["old"]["tool_count"], report["new"]["tool_count"]))
+    c = report["counts"]
+    lines.append("changes: %d breaking, %d compatible, %d info"
+                 % (c["breaking"], c["compatible"], c["info"]))
+    lines.append("verdict: %s" % report["verdict"].upper())
+    if report["changes"]:
+        lines.append("")
+        for ch in report["changes"]:
+            lines.append("[%-10s] %-28s %-32s %s"
+                         % (ch["severity"], ch["kind"], ch["tool"], ch["path"]))
+            lines.append("    %s" % ch["detail"])
+    return "\n".join(lines)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="mcp-contract-diff",
+        description="Classify breaking changes between two MCP tools/list snapshots.",
+    )
+    parser.add_argument("old", help="baseline snapshot (tools/list response or {'tools': [...]})")
+    parser.add_argument("new", help="candidate snapshot")
+    parser.add_argument("--old-label", default=None, help="label for the baseline in the report")
+    parser.add_argument("--new-label", default=None, help="label for the candidate in the report")
+    parser.add_argument("--json", action="store_true", dest="as_json", help="emit machine-readable JSON")
+    parser.add_argument("--fail-on", choices=["breaking", "compatible", "info"], default="breaking",
+                        help="lowest severity that makes the exit code 1 (default: breaking)")
+    parser.add_argument("--exit-zero", action="store_true", help="always exit 0 when the input parsed")
+    args = parser.parse_args(argv)
+
+    try:
+        report = build_report(_read(args.old), _read(args.new),
+                              args.old_label or os.path.basename(args.old),
+                              args.new_label or os.path.basename(args.new))
+    except InputError as exc:
+        if args.as_json:
+            json.dump({"error": str(exc)}, sys.stdout, indent=2)
+            sys.stdout.write("\n")
+        else:
+            sys.stderr.write("mcp-contract-diff: error: %s\n" % exc)
+        return EXIT_USAGE
+
+    if args.as_json:
+        json.dump(report, sys.stdout, indent=2, sort_keys=False)
+        sys.stdout.write("\n")
+    else:
+        sys.stdout.write(_human(report) + "\n")
+
+    if args.exit_zero:
+        return EXIT_OK
+    threshold = SEVERITY_ORDER[args.fail_on]
+    hit = any(SEVERITY_ORDER[ch["severity"]] >= threshold for ch in report["changes"])
+    return EXIT_FINDINGS if hit else EXIT_OK
+
+
+if __name__ == "__main__":
+    sys.exit(main())
