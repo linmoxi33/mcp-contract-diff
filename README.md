@@ -43,7 +43,7 @@ Classifications:
 Python 3.9+, no third-party packages.
 
 ```bash
-git clone git@github-linmoxi33:linmoxi33/mcp-contract-diff.git
+git clone https://github.com/linmoxi33/mcp-contract-diff.git
 cd mcp-contract-diff
 python3 --version   # 3.9+
 ```
